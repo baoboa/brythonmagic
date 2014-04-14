@@ -30,7 +30,15 @@ To enable the magics below, execute ``%load_ext brythonmagic``.
 #
 # Distributed under the terms of the MIT License. The full license is in
 # the file LICENSE, distributed as part of this software.
+
+# Contributors (alphabetical order):
+#   kikocorreoso
+#   Polack Christian (baoboa)
 #-----------------------------------------------------------------------------
+
+import sys
+if sys.version_info < (3,3):
+    raise Exception("Python v3.3 or higher is required. Other versions have not been tested")
 
 import json
 from random import randint
@@ -73,14 +81,24 @@ shell : IPython shell
              'Lists, Tuples, Dicts and Strings are converted to the same type in Brython.'
         )
     @argument(
-        '-o', '--output', action='append',
+        '-c', '--container', action='append',
         help='Name of html DIV container to be used to show the Brython output.'
              'Only one name is accepted.'
         )
     @argument(
-        '-l', '--libs', action='append',
-        help='url of javascript libraries you want to include in your brython script.'
-             'Urls are separated by comma.'
+        '-h', '--html', action='append',
+        help='A string with some html code in order to avoid the creation of the html code from Brython code.'
+             'Only one name is accepted.'
+        )
+    @argument(
+        '-s', '--script', action='append',
+        help='Name to be used for the id of the script tag where the brython code cell will be inserted.'
+             'Only one name is accepted.'
+        )
+    @argument(
+        '-S', '--scripts', action='append',
+        help='id of the script tag of other Brython scripts not defined in de actual Brython code cell.'
+             'Several ids are accepted.'
         )
     @argument(
         '-p', '--print', action='store_true',
@@ -102,7 +120,7 @@ if necessary::
 As a cell, this will run a block of Brython code, returning results
 in a DIV if defined::
 
-In [10]: %%brython -o 'output_123'
+In [10]: %%brython -c 'output_123'
 ....: from browser import doc, html
 ....: doc['output_123'] <= html.P('Hello World!!')
 
@@ -133,6 +151,9 @@ In [2]: %%brython -i Z
 
         code = ' '.join(args.code) + code
         
+        ########################################################################
+        ## Check if input variables from the Python namespace have to be used ##
+        ########################################################################
         if args.input:
             for input in ','.join(args.input).split(','):
                 input = unicode_to_str(input)
@@ -152,45 +173,69 @@ In [2]: %%brython -i Z
                     print('{} not accepted'.format(input))
                     print("Only Python lists, tuples, dicts and strings are accepted")
                 params['input'][input] = val
-
-        if args.output is not None:
+        
+        #######################################
+        ## Check if a container is specified ##
+        #######################################
+        if args.container is not None:
             try:
-                val = unicode_to_str(args.output)[0]
+                val = unicode_to_str(args.container)[0]
                 if isinstance(val, str):
-                    params['output'] = val
+                    params['container'] = val
             except ValueError:
                 print('Only a string is accepted')
         else:
-            params['output'] = 'brython_container_' + script_id
+            params['container'] = "brython_container_" + script_id
         
+        #########################################
+        ## Check the Brython scripts to be run ##
+        #########################################
+        if args.script:
+            script_id = unicode_to_str(args.script)[0]
         
-        # we pass all the input variables to the brython script
-        js_libs = ""
-        if args.libs:
-            js_libs += "<!-- third party js libs -->\n"
-            js_libs += """<script type="text/javascript">\n"""
-            for url in ','.join(args.libs).split(','):
-                #js_libs += """<script type="text/javascript" src="{}"></script>\n""".format(url)
-                js_libs += """$.getScript("{}")\n""".format(url)
-            js_libs += "</script>\n"
-            js_libs += "<!-- End of 3rd party js libs -->\n"
+        scripts_id = []
+        if args.scripts:
+            for input in ','.join(args.scripts).split(','):
+                scripts_id.append(unicode_to_str(input))
+        scripts_id.append(script_id)
+         
+        scripts_ids = json.dumps(scripts_id)
+        options = "{debug:1, ipy_id: " + scripts_ids + "}"
+        
+        ###########################################
+        ## Check if input HTML code is specified ##
+        ###########################################
+        if args.html:
+            markup = unicode_to_str(args.html)[0]
+            if isinstance(markup, str):
+                markup = self.shell.user_ns[markup]
+            else:
+                markup = ""
+        else:
+            markup = ""
+        
+        #######################################################
+        ## Now we create the final HTML code to be displayed ##
+        #######################################################
+        pre_call = """<script id="{}" type="text/python">\n""".format(script_id)
+        if params['input'].keys():
+            pre_call += "## Variables defined in the Python namespace\n"
+            for key in params['input'].keys():
+                pre_call += "{0} = {1}\n".format(key, params['input'][key])
+            pre_call += "## End of variables defined in the IPython namespace\n\n"
 
-        pre_call = """
-<script id="{}" type="text/python">
-## Variables defined in the IPython namespace
-""".format(script_id)
-        for key in params['input'].keys():
-            pre_call += "{0} = {1}\n".format(key, params['input'][key])
-        pre_call += "## End of variables defined in the IPython namespace\n\n"
+        post_call = "\n</script>\n"
+        post_call += """<script type="text/javascript">brython({0});</script>\n""".format(options)
+        post_call += """<div id="{0}">{1}</div>""".format(str(params['container']), 
+                                                          markup)
+        ################################
+        ## Create the final HTML code ##
+        ################################
+        code = ''.join((pre_call, code, post_call))
         
-        options = "{debug:1, py_id:'" + script_id + "'}"
-        post_call ="""
-</script>
-<script type="text/javascript">brython({0});</script>
-<div id="{1}"></div>
-""".format(options, str(params['output']))
-
-        code = ''.join((js_libs, pre_call, code, post_call))
+        ############################################
+        ## Display the results in the output area ##
+        ############################################
         try:
             display(HTML(code))
             if args.print:
@@ -200,9 +245,7 @@ In [2]: %%brython -i Z
             print("Please, see your browser javascript console for more details.")
 
 __doc__ = __doc__.format(
-    BRYTHON_DOC = dedent(BrythonMagics.brython.__doc__)
-    )
-
+    BRYTHON_DOC = dedent(BrythonMagics.brython.__doc__))
 
 def load_ipython_extension(ip):
     """Load the extension in IPython."""
