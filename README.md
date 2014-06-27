@@ -1,20 +1,22 @@
-brythonmagic
+Brythonmagic
 ============
 
 Brython magic for the IPython notebook.
 
 The brythonmagic extension has been tested on:
 
-* IPython versions (2, 0, 0, ''), (1, 2, 1, ''), (1, 2, 0, '') and (1, 1, 0, '')
+* IPython versions (2, 1, 0, ''), (2, 0, 0, ''), (1, 2, 1, ''), (1, 2, 0, '') and (1, 1, 0, '')
 
 * Python version 3.3.1
 
-* Brython version [2,0,0,'final',2]
+* Brython versions (2,1,0), (2,0,0)
 
 Installation
 ============
 
-Just type the following:
+You should have IPython (notebook) already installed in order to use Brythonmagic. In case you don't have IPython installed you can follow the instructions on the [IPython official page](http://ipython.org/install.html).
+
+To install brythonmagic itself just type the following:
 
 ```python
 %install_ext https://raw.github.com/kikocorreoso/brythonmagic/master/brythonmagic.py
@@ -30,6 +32,8 @@ And load the brython js lib in the notebook:
 %%HTML
 <script type="text/javascript" src="http://brython.info/src/brython_dist.js"></script>
 ```
+
+If you have any problem with the installation, please, open an [issue](https://github.com/kikocorreoso/brythonmagic/issues).
 
 Usage
 =====
@@ -84,6 +88,9 @@ You can use several options:
 
 * -S, --scripts: Use this option to run code previously defined in other Brython code cells. The values should be the provided values in the -s/--script option in other Brython code cells.
 
+* -f, --fiddle: With this option, the code in the cell will be automatically uploaded to [gist.github.com/](https://gist.github.com/) as an anonymous gist with several files in it. This files will be used to create an anonymous 'fiddle' on [jsfiddle.net](http://jsfiddle.net). Finally, some links will be printed in the output linking to the gist and the fiddle. See an example here ([https://gist.github.com/anonymous/b664e8b4617afc09db6c](https://gist.github.com/anonymous/b664e8b4617afc09db6c) and [http://jsfiddle.net/gh/gist/library/pure/b664e8b4617afc09db6c/](http://jsfiddle.net/gh/gist/library/pure/b664e8b4617afc09db6c/))
+
+* -e, --embedfiddle: With this option, the code in the cell will be automatically uploaded to [gist.github.com/](https://gist.github.com/) as an anonymous gist with several files in it. This files will be used to create an anonymous 'fiddle' on [jsfiddle.net](http://jsfiddle.net). Finally, some links will be printed in the output linking to the gist and the fiddle and an iframe will be created showing the fiddle on [jsfiddle.net](http://jsfiddle.net).
 
 [WARNING] This options may change as the brythonmagic is in active development. 
 
@@ -103,8 +110,16 @@ If you want to improve the code, fork, commit and PR ;·D
 IDEAS
 =====
 
-Add an option to include *.py scripts? These *.py scripts should be Brython compatible.
+Add an option to include *.py scripts? These *.py scripts should be Brython compatible. &#10004; (this could be made via imports with the py script in the same folder as the notebook)
 
-Add an option to include a HTML structure so you don't have to create the structure via Brython code? &#10004;
+Add an option to include a HTML structure so you don't have to create the structure via Brython code? &#10004; (did it)
 
-Add an option to run more than one Brython script in a code cell? Right now, if you run a Brython code cell, the code in other cells will not work anymore (i.e., \_\_BRYTHON\_\_.vars.\_\_main\_\_ will be overwritten). &#10004; 
+Add an option to run more than one Brython script in a code cell? Right now, if you run a Brython code cell, the code in other cells will not work anymore (i.e., \_\_BRYTHON\_\_.vars.\_\_main\_\_ will be overwritten). &#10004;  (did it)
+
+CONTRIBUTORS
+============
+
+* Kikocorreoso ([pybonacci blog](http://pybonacci.wordpress.com), [twitter](https://twitter.com/pybonacci))
+* baoboa ([github](https://github.com/baoboa)) for some insightful comments and code.
+* Roger Veciana ([github](https://github.com/rveciana), [twitter](https://twitter.com/rveciana)) for the review of the Openlayers tutorial.
+* Pierre Quentel and all the Brython committers for their work and their invaluable suggestions and help.
