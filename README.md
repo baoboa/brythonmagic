@@ -1,54 +1,101 @@
 Brythonmagic
 ============
 
-Brython magic for the IPython notebook.
+Brython magic for the Jupyter notebook.
+
+The brythonmagic provides you a cell magic, `%%brython`, to run brython 
+code and show the results in a html `div` tag below the code cell. Best 
+way to start with Brython is to check [the Brython docs in their home 
+page](http://brython.info/doc/en/index.html).
+
+Tested on
+=========
 
 The brythonmagic extension has been tested on:
 
-* IPython versions (2, 1, 0, ''), (2, 0, 0, ''), (1, 2, 1, ''), (1, 2, 0, '') and (1, 1, 0, '')
+* Jupyter versions >= 1.0.0
 
-* Python version 3.3.1
+* Python version >= 3.3 and == 2.7
 
-* Brython versions (2,1,0), (2,0,0)
+* Brython versions >= 2.0.0 and >= 3.0.0
 
 Installation
 ============
 
-You should have IPython (notebook) already installed in order to use Brythonmagic. In case you don't have IPython installed you can follow the instructions on the [IPython official page](http://ipython.org/install.html).
+You should have Jupyter (notebook) already installed in order to use 
+Brythonmagic. In case you don't have Jupyter installed you can follow 
+the instructions on the [Jupyter official 
+page](http://jupyter.readthedocs.org/en/latest/index.html).
 
 To install brythonmagic itself just type the following:
 
 ```python
-%install_ext https://raw.github.com/kikocorreoso/brythonmagic/master/brythonmagic.py
+pip install brythonmagic
 ```    
+
+or download this repo and on the brythonmagic downloaded folder type:
+
+```python
+python setup.py install
+```
+
+Then, load the extension:
 
 ```python
 %load_ext brythonmagic
 ```
 
-And load the brython js lib in the notebook:
+And, finally, load the stable brython js lib in the notebook using the 
+following code:
 
 ```python
-%%HTML
-<script type="text/javascript" src="http://brython.info/src/brython_dist.js"></script>
+from brythonmagic import load_brython_stable
+load_brython_stable()
 ```
 
-If you have any problem with the installation, please, open an [issue](https://github.com/kikocorreoso/brythonmagic/issues).
+In case you want to use the development brython js lib in the notebook 
+use the following code:
+
+```python
+from brythonmagic import load_brython_dev
+load_brython_dev()
+```
+
+If you have any problem with the installation, please, open an 
+[issue](https://github.com/kikocorreoso/brythonmagic/issues).
+
+WARNING
+=======
+
+In order to load javascript libraries in a safety way you should try to
+use https instead of http when possible (read more 
+[here](http://mail.scipy.org/pipermail/ipython-dev/2014-July/014572.html)). 
+If you don't trust the source and/or the source cannot be loaded using 
+https then you could download the javascript library and load it from a 
+local location.
+
+Brythonmagic doesn't load any javascript library and the user should
+take care about the security and should use trusted sources.
+
+You can load third party javascript libraries using the following code:
+
+```python
+from brythonmagic import load_js_lib
+load_js_lib("https://url/to/your/lib.js")
+```
 
 Usage
 =====
-
-The brythonmagic provides you a cell magic, `%%brython`, to run brython code and show the results in a html `div` tag below the code cell. Best way to start with Brython is to check [the Brython docs in their home page](http://brython.info/doc/en/index.html).
 
 example:
 
 ```python
 %%brython -c zone
 # First of all, the import of some libraries
-from browser import doc, html
+from browser import document, html
 
 # All the elements will be inserted in the div with the "zone" id
-zone = doc['zone']
+zone = document['zone']
 
 # We create a new div element
 newdiv = html.DIV(Id = "new-div")
@@ -58,68 +105,132 @@ newdiv.style = {"padding": "5px",
 
 # We create a new link and add the link to a string
 blink = html.A('brython',href="http://brython.info")
-text = "Brython is really cool, look at "+ blink+ " for more"
+text = "Brython is really cool, look at "+ blink + " for more"
 
 # Now we add the text to the div with id="new-div"
-# the line below is equivalent to newdiv <= html.DIV(text,"banner")
-newdiv.append(html.DIV(text,"banner"))
+newdiv <= html.DIV(text)
 
 # Finally, we add the newdiv to the outer div with id="zone"
-# zone <= newdiv is equivalent to zone.append(newdiv)
 zone <= newdiv
 ```    
 
 You can use several options:
 
-* -p, --print: will show you the generated html code below the results obtained from the brython code.
+* -p, --print: will show you the generated html code below the results 
+obtained from the brython code.
 
 
-* -c, --container: you can define the name of the `div` container in case you want to 'play' with it in other cell. If you don't define an output the `div` will have and `id` with the following format 'brython-container-[random number between 0 and 999999]'
+* -c, --container: you can define the name of the `div` container in 
+case you want to 'play' with it in other cell. If you don't define an 
+output the `div` will have an `id` with the following format 
+'brython-container-[random number between 0 and 999999]'. Just one 
+container name is accepted. If you pass more than one only the first 
+one will be used and a warning will raise.
 
 
-* -i, --input: you can pass variables defined in the Python namespace separated by commas. If you pass a python list it will be converted to a brython list, a python tuple will be converted to a brython tuple, a python dict will be converted to a brython dict, a python string will be converted to a brython string.
+* -i, --input: you can pass variables defined in the Python namespace 
+separated by whitespaces. If you pass a python list it will be converted 
+to a brython list, a python tuple will be converted to a brython tuple, 
+a python dict will be converted to a brython dict, a python string will 
+be converted to a brython string.
 
 
-* -h, --html: you can pass a string with html markup code. This html code will be inserted inside the div container. In this way you can avoid the generation of HTML markup code via a Brython script so you can separate the layout from the 'action'.
+* -h, --html: you can pass a string with html markup code. This html 
+code will be inserted inside the div container. In this way you can 
+avoid the generation of HTML markup code via a Brython script so you 
+can separate the layout from the 'action'. Just one html markup code 
+string name is accepted. If you pass more than one only the first one 
+will be used and a warning will raise.
 
 
-* -s, --script: Use this option to provide and id to the script defined in the Brython code cell. Also, this value could be used to run the code of this cell in other brython cells.
+* -s, --script: Use this option to provide an id to the script defined 
+in the Brython code cell. Also, this value could be used to run the 
+code of this cell in other brython cells. Just one script name is 
+accepted. If you pass more than one only the first one will be used and 
+a warning will raise.
 
 
-* -S, --scripts: Use this option to run code previously defined in other Brython code cells. The values should be the provided values in the -s/--script option in other Brython code cells.
+* -S, --scripts: Use this option to run code previously defined in 
+other Brython code cells. The values should be the provided values in 
+the -s/--script option in other Brython code cells.
 
-* -f, --fiddle: With this option, the code in the cell will be automatically uploaded to [gist.github.com/](https://gist.github.com/) as an anonymous gist with several files in it. This files will be used to create an anonymous 'fiddle' on [jsfiddle.net](http://jsfiddle.net). Finally, some links will be printed in the output linking to the gist and the fiddle. See an example here ([https://gist.github.com/anonymous/b664e8b4617afc09db6c](https://gist.github.com/anonymous/b664e8b4617afc09db6c) and [http://jsfiddle.net/gh/gist/library/pure/b664e8b4617afc09db6c/](http://jsfiddle.net/gh/gist/library/pure/b664e8b4617afc09db6c/))
+* -f, --fiddle: With this option, the code in the cell will be 
+automatically uploaded to [gist.github.com/](https://gist.github.com/) 
+as an anonymous gist with several files in it. This files will be used 
+to create an anonymous 'fiddle' on [jsfiddle.net](http://jsfiddle.net). 
+Finally, some links will be printed in the output linking to the gist 
+and the fiddle. See an example here 
+([https://gist.github.com/anonymous/b664e8b4617afc09db6c](https://gist.github.com/anonymous/b664e8b4617afc09db6c) 
+and [http://jsfiddle.net/gh/gist/library/pure/b664e8b4617afc09db6c/](http://jsfiddle.net/gh/gist/library/pure/b664e8b4617afc09db6c/))
 
-* -e, --embedfiddle: With this option, the code in the cell will be automatically uploaded to [gist.github.com/](https://gist.github.com/) as an anonymous gist with several files in it. This files will be used to create an anonymous 'fiddle' on [jsfiddle.net](http://jsfiddle.net). Finally, some links will be printed in the output linking to the gist and the fiddle and an iframe will be created showing the fiddle on [jsfiddle.net](http://jsfiddle.net).
+* -e, --embedfiddle: With this option, the code in the cell will be 
+automatically uploaded to [gist.github.com/](https://gist.github.com/) 
+as an anonymous gist with several files in it. This files will be used 
+to create an anonymous 'fiddle' on [jsfiddle.net](http://jsfiddle.net). 
+Finally, some links will be printed in the output linking to the gist 
+and the fiddle and an iframe will be created showing the fiddle on 
+[jsfiddle.net](http://jsfiddle.net).
 
-[WARNING] This options may change as the brythonmagic is in active development. 
+[WARNING] This options may change as the brythonmagic depending the 
+development of Brython and/or Jupyter. 
 
-To see some examples download the notebook available in the repository and run it locally or see it in the [nbviewer](http://nbviewer.ipython.org/urls/raw.githubusercontent.com/kikocorreoso/brythonmagic/master/notebooks/Brython%20usage%20in%20the%20IPython%20notebook.ipynb?create=1) (you will loose the interactivity if you choose the second option). Also, you can take a look on the following video: http://youtu.be/adQzjuUX0kw
+To see some examples download the notebooks available in the repository 
+and run it locally or see it in the 
+[nbviewer](http://nbviewer.jupyter.org/urls/raw.githubusercontent.com/kikocorreoso/brythonmagic/master/notebooks/Brython%20usage%20in%20the%20IPython%20notebook.ipynb?create=1) 
+(you will loose the interactivity if you choose the second option). 
+Also, you can take a look on the following video: 
+http://youtu.be/adQzjuUX0kw
+
+Example notebooks
+=================
+
+* [General usage of Brythonmagic](http://nbviewer.jupyter.org/github/kikocorreoso/brythonmagic/blob/master/notebooks/Brython%20usage%20in%20the%20IPython%20notebook.ipynb).
+
+* [An Openlayers tutorial](http://nbviewer.jupyter.org/github/kikocorreoso/brythonmagic/blob/master/notebooks/OpenLayers%20(python)%20tutorial.ipynb).
+
+* [A Highcharts tutorial](http://nbviewer.jupyter.org/github/kikocorreoso/brythonmagic/blob/master/notebooks/Highcharts%20(python)%20tutorial.ipynb)
 
 Support
 =======
 
-If you need Brython support, please, ask here: https://groups.google.com/forum/?fromgroups=#!forum/brython
+If you need Brython support, please, ask here: 
+https://groups.google.com/forum/?fromgroups=#!forum/brython
 
-If you need IPython support, please, ask here: http://mail.scipy.org/mailman/listinfo/ipython-dev
+If you need IPython support, please, ask here: 
+http://mail.scipy.org/mailman/listinfo/ipython-dev
 
-If you find a bug or want to propose a new feature open a new issue here: https://github.com/kikocorreoso/brythonmagic/issues
+If you find a bug or want to propose a new feature open a new issue 
+here: https://github.com/kikocorreoso/brythonmagic/issues
 
-If you want to improve the code, fork, commit and PR ;·D
+If you want to improve the code, fork, commit and send a PR ;·D
 
 IDEAS
 =====
 
-Add an option to include *.py scripts? These *.py scripts should be Brython compatible. &#10004; (this could be made via imports with the py script in the same folder as the notebook)
+Add an option to include *.py scripts? These *.py scripts should be 
+Brython compatible. &#10004; (this could be made via imports with the 
+py script in the same folder as the notebook)
 
-Add an option to include a HTML structure so you don't have to create the structure via Brython code? &#10004; (did it)
+Add an option to include a HTML structure so you don't have to create 
+the structure via Brython code? &#10004; (did it)
 
-Add an option to run more than one Brython script in a code cell? Right now, if you run a Brython code cell, the code in other cells will not work anymore (i.e., \_\_BRYTHON\_\_.vars.\_\_main\_\_ will be overwritten). &#10004;  (did it)
+Add an option to run more than one Brython script in a code cell? Right 
+now, if you run a Brython code cell, the code in other cells will not 
+work anymore. &#10004;  (did it)
+
+Make it python 2.7 compatible. &#10004;  (did it)
+
+Create a setup.py to make it available via pip. &#10004;  (did it)
+
 
 CONTRIBUTORS
 ============
 
 * Kikocorreoso ([pybonacci blog](http://pybonacci.wordpress.com), [twitter](https://twitter.com/pybonacci))
-* baoboa ([github](https://github.com/baoboa)) for some insightful comments and code.
-* Roger Veciana ([github](https://github.com/rveciana), [twitter](https://twitter.com/rveciana)) for the review of the Openlayers tutorial.
-* Pierre Quentel and all the Brython committers for their work and their invaluable suggestions and help.
+* baoboa ([github](https://github.com/baoboa)) for some insightful 
+comments and code.
+* Roger Veciana ([github](https://github.com/rveciana), 
+[twitter](https://twitter.com/rveciana)) for the review of the 
+Openlayers tutorial.
+* Pierre Quentel and all the Brython committers for their work and 
+their invaluable suggestions and help.

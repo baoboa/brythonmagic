@@ -1,2 +1,4 @@
+ignore folder
 *.pyc
 *.pyo
+.ipynb_checkpoints/
